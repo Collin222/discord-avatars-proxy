@@ -1,12 +1,24 @@
 import request from 'request';
 import cache from '../../../../cache';
 
+const getSearchFromQuery = query => {
+	let search = '';
+	for (const x of Object.entries(query)) {
+		search += `&${x[0]}=${x[1]}`;
+	}
+	if (search.startsWith('&')) search = search.substring(1);
+	return search;
+};
+
 export default async function handler(req, res) {
 	if (!req.query.userId) throw new Error('User ID is required');
 
+	const searchParams = { ...req.query };
+	delete searchParams.userId;
+	const search = getSearchFromQuery(searchParams);
+
 	if (cache.getAvatarUrl(req.query.userId)) {
-		console.log('Received avatar url from cache');
-		request(cache.getAvatarUrl(req.query.userId)).pipe(res);
+		request(cache.getAvatarUrl(req.query.userId) + `?${search}`).pipe(res);
 		return;
 	}
 
@@ -18,11 +30,13 @@ export default async function handler(req, res) {
 	if (r.status !== 200) return res.status(500).send();
 	const data = await r.json();
 
-	const url = data.avatar
+	let url = data.avatar
 		? `https://cdn.discordapp.com/avatars/${req.query.userId}/${data.avatar}`
 		: `https://cdn.discordapp.com/embed/avatars/${data.discriminator % 5}.png`;
 
 	cache.setAvatarUrl(req.query.userId, url);
+
+	url += `?${search}`;
 
 	request(url).pipe(res);
 }
