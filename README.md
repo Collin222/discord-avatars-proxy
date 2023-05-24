@@ -9,3 +9,9 @@ This guide will use the domain hosted at https://discord-avatars-proxy.vercel.ap
 - https://discord-avatars-proxy.vercel.app/api/avatar/:userId
 
 If the user ID was 123, -> https://discord-avatars-proxy.vercel.app/api/avatar/123
+
+### Query Strings
+
+Any query strings provided to the `/api/avatar` url is passed to the Discord CDN.
+
+For example, if you want to get an avatar for user ID `123` with size `32`, you would fetch: `/api/avatar/123?size=32`.
